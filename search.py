@@ -125,7 +125,7 @@ def breadthFirstSearch(problem):
     #to be explored (FIFO)
     frontier = util.Queue()
     
-    #previously expanded states (for cycle checking), holds states
+
     exploredNodes = []
     
     startState = problem.getStartState()
@@ -161,7 +161,6 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     frontier = util.PriorityQueue()
 
-    #previously expanded states (for cycle checking), holds state:cost
     exploredNodes = {}
     
     startState = problem.getStartState()
