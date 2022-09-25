@@ -360,8 +360,7 @@ class CornersProblem(search.SearchProblem):
                 
                 nextState = (nextx, nexty)
                 
-                # Have to create a new list to create a deep copy
-                # else it won't return correct number of moves
+
                 cornersVisited = list(state[1])
                 if nextState == self.corners[0]:
                     cornersVisited[0] = True
@@ -394,43 +393,6 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-def findClosestPoint(location, goalArray):
-    """
-    Helper function for corners
-    """
-    
-    closestPoint = 0
-    closestPointCost = util.manhattanDistance( location, goalArray[0] )
-    
-    for j in range(len(goalArray)):
-        #calculate distance between current state to corner
-        cornerLocation = goalArray[j]
-        lengthToCorner = util.manhattanDistance( location, cornerLocation )
-        
-        if lengthToCorner < closestPointCost:
-            closestPoint = j
-            closestPointCost = lengthToCorner
-
-    return (closestPoint, closestPointCost)
-
-def findFarthestPoint(location, goalArray):
-    """
-    Helper function for corners
-    """
-    
-    farthestPoint = 0
-    farthestPointCost = util.manhattanDistance( location, goalArray[0] )
-    
-    for j in range(len(goalArray)):
-        #calculate distance between current state to corner
-        cornerLocation = goalArray[j]
-        lengthToCorner = util.manhattanDistance( location, cornerLocation )
-        
-        if lengthToCorner > farthestPointCost:
-            farthestPoint = j
-            farthestPointCost = lengthToCorner
-
-    return (farthestPoint, farthestPointCost)
 
 def cornersHeuristic(state, problem):
     """
@@ -446,41 +408,23 @@ def cornersHeuristic(state, problem):
     admissible (as well as consistent).
     """
     corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py) #not used due to helper functions
 
-    heuristic = 0
-    currentLocation = state[0]
-    cornersUnvisited = state[1]
-    
-    #unvisited corners
-    unvisitedCorners = []
-    for i in range(len(cornersUnvisited)):
-        if not cornersUnvisited[i]:
-            unvisitedCorners.append(corners[i])
+    from util import manhattanDistance
 
-    #calculate the distance from current node to all corner nodes
-    if len(unvisitedCorners) > 0:
-        closestPoint = findClosestPoint(currentLocation, unvisitedCorners)
-        farthestPoint = findFarthestPoint(currentLocation, unvisitedCorners)
-        
-        closestPointIndex = closestPoint[0]
-        farthestPointIndex = farthestPoint[0]
+    # Goal state #
+    if problem.isGoalState(state):
+        return 0
 
-        currentNode = problem.startingGameState
-        closestNode = unvisitedCorners[closestPointIndex]
-        farthestNode = unvisitedCorners[farthestPointIndex]
+    else:
+        distances = [] # Calculate all distances from goals(not visited corners)
 
-        #mazeDistance returns maze distance btw 2 points: eg. mazeDistance( (2,4), (5,6), gameState)
+        for index,item in enumerate(state[1]):
+            if item == 0: # Not visited corner
+                # Use manhattan method #
+                distances.append(manhattanDistance(state[0],corners[index]))
 
-        #distance between current location and closest manhattan node
-        currentToClosest = mazeDistance(currentLocation, closestNode, currentNode)
-
-        #distance between closest manhattan node and farthest manhattan node
-        closestToFarthest = mazeDistance(closestNode, farthestNode, currentNode)
-
-        heuristic = currentToClosest + closestToFarthest
-    
-    return heuristic
+        # Worst case. This guess should be higher than real. Pick higher distance #
+        return max(distances)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -573,30 +517,17 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    heuristic = 0
-    foodList = foodGrid.asList()
-    
-    #calculate the distance from current node to food-containing nodes
-    if len(foodList) > 0:
-        closestPoint = findClosestPoint(position, foodList)
-        farthestPoint = findFarthestPoint(position, foodList)
-        
-        closestPointIndex = closestPoint[0]
-        farthestPointIndex = farthestPoint[0]
-        
-        currentNode = problem.startingGameState
-        closestFoodNode = foodList[closestPointIndex]
-        farthestFoodNode = foodList[farthestPointIndex]
-        
-        #distance between current location and closest manhattan node
-        currentToClosest = mazeDistance(position, closestFoodNode, currentNode)
-        
-        #distance between closest manhattan node and farthest manhattan node
-        closestToFarthest = mazeDistance(closestFoodNode, farthestFoodNode, currentNode)
-        
-        heuristic = currentToClosest + closestToFarthest
-    
-    return heuristic
+    "*** YOUR CODE HERE ***"
+
+    H = 0
+    maxDistance = 0
+ 
+    for y in range(foodGrid.height):
+        for x in range(foodGrid.width):
+            if (foodGrid[x][y] == 1) and (mazeDistance(position,(x,y),problem.startingGameState) > maxDistance):
+                maxDistance = mazeDistance(position,(x,y),problem.startingGameState)
+    H = maxDistance     
+    return H
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
